@@ -537,7 +537,15 @@ button.card[data-hand="2"]::after { background: #e7e1d2; }
 }
 
 /* ---------- Venues ---------- */
-.venues { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.tables-grid { display: grid; grid-template-columns: 1fr 1.25fr; gap: 20px; align-items: stretch; }
+.venues { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 12px; align-content: start; }
+.venue-map { display: flex; flex-direction: column; gap: 8px; }
+.venue-map iframe {
+  flex: 1; width: 100%; min-height: 360px; border: 0; border-radius: var(--r);
+  background: var(--bg-2);
+  box-shadow: inset 0 0 0 1px var(--line), 0 24px 48px -28px #000;
+}
+.venue-map .text-link { align-self: flex-end; font-size: .9rem; }
 .venues a {
   position: relative; overflow: hidden;
   display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: 6px 10px;
@@ -610,6 +618,28 @@ button.card[data-hand="2"]::after { background: #e7e1d2; }
 .legal { grid-column: 1 / -1; font-size: .78rem; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 24px; }
 .legal p { margin: 0 0 6px; }
 
+/* ---------- App legal pages (privacy, terms, support) ---------- */
+.legal-nav { display: flex; gap: 4px 20px; flex-wrap: wrap; justify-content: flex-end; }
+.legal-nav a { color: var(--ink-2); text-decoration: none; font-weight: 500; font-size: .95rem; min-height: 44px; display: inline-flex; align-items: center; }
+.legal-nav a[aria-current="page"] { color: var(--gold-hi); }
+@media (hover: hover) { .legal-nav a:hover { color: var(--ink); } }
+.legal-page { max-width: 780px; padding-top: 56px; padding-bottom: 88px; }
+.legal-page h1 { font-size: clamp(2.2rem, 6vw, 3.4rem); font-weight: 900; font-stretch: 85%; margin-bottom: 12px; }
+.legal-meta { color: var(--ink-3); font-size: .92rem; margin-bottom: 40px; }
+.legal-doc { color: var(--ink-2); font-size: 1.02rem; line-height: 1.7; }
+.legal-doc h2 { font-size: 1.35rem; font-weight: 800; color: var(--ink); margin: 40px 0 12px; padding-top: 20px; border-top: 1px solid var(--line); }
+.legal-doc strong { color: var(--ink); }
+.legal-doc ul, .legal-doc ol { padding-left: 1.3em; margin: 0 0 1em; }
+.legal-doc li { margin-bottom: .5em; }
+.legal-doc a, .legal-meta a, .legal-siblings a, .legal a { color: var(--gold-hi); }
+.legal-siblings { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--ink-3); font-size: .92rem; }
+@media (max-width: 640px) {
+  .legal-page { padding-top: 36px; }
+  .legal-nav { gap: 0 14px; }
+  .legal-nav a { font-size: .9rem; }
+  .legal-body .brand span { display: none; }
+}
+
 /* ---------- Scroll reveal ---------- */
 .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s var(--ease-out), transform .7s var(--ease-out); transition-delay: calc(var(--i, 0) * 70ms); }
 .reveal.in { opacity: 1; transform: none; }
@@ -625,7 +655,9 @@ button.card[data-hand="2"]::after { background: #e7e1d2; }
   .hero-deal { --cw: 54px; --gap: 28px; }
   .demo { position: static; }
   .sidebets { grid-template-columns: 1fr; }
-  .venues, .pillars, .contact-grid { grid-template-columns: repeat(2, 1fr); }
+  .pillars, .contact-grid { grid-template-columns: repeat(2, 1fr); }
+  .tables-grid { grid-template-columns: 1fr; }
+  .venues { grid-template-columns: repeat(2, 1fr); }
   .phones { max-width: 600px; margin: 0 auto; width: 100%; }
 }
 @media (max-width: 860px) {
@@ -661,6 +693,7 @@ button.card[data-hand="2"]::after { background: #e7e1d2; }
   .proof strong { font-size: 1.35rem; }
   .steps li { grid-template-columns: 48px 1fr; gap: 12px; }
   .venues, .pillars, .contact-grid { grid-template-columns: 1fr; }
+  .venue-map iframe { min-height: 300px; }
   .sidebet-list { grid-template-columns: repeat(2, 1fr); }
   .sidebets { padding: 22px; margin-top: 64px; gap: 24px; }
   .demo { padding: 14px; margin: 0 -4px; border-radius: 22px; }
