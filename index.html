@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>2 Hand Hold’em™ — Two hands. One board. Beat the dealer.</title>
   <meta name="description" content="2 Hand Hold’em™ is the patented casino table game where you play two Texas Hold’em hands against one dealer. Find a live table, play free on iPhone, or license it for your casino floor." />
   <link rel="canonical" href="https://2handholdem.com/" />
@@ -22,7 +22,8 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,600..900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="preload" as="image" href="assets/img/logo-2hh.webp" type="image/webp" fetchpriority="high" />
   <link rel="stylesheet" href="style.css" />
 
   <script type="application/ld+json">
@@ -44,7 +45,7 @@
   <header class="site-header" id="top">
     <div class="wrap header-inner">
       <a class="brand" href="#top" aria-label="2 Hand Hold’em home">
-        <img src="assets/img/app-icon.png" alt="" width="36" height="36" />
+        <img src="assets/img/app-icon.webp" alt="" width="36" height="36" />
         <span>2 Hand Hold’em<sup>™</sup></span>
       </a>
       <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
@@ -64,14 +65,13 @@
   <main id="main">
     <!-- HERO -->
     <section class="hero">
-      <div class="felt-glow" aria-hidden="true"></div>
-      <div class="wrap hero-inner">
+            <div class="wrap hero-inner">
         <div class="hero-copy">
           <p class="eyebrow">The patented Hold’em table game</p>
-          <h1>Two hands.<br /><span class="gold">One board.</span><br />Beat the dealer.</h1>
+          <h1><span class="line">Two hands.</span><span class="line gold">One board.</span><span class="line">Beat the dealer.</span></h1>
           <p class="lede">You get four hole cards. Split them into two Hold’em hands and play both against a single dealer — twice the action, without slowing the pit.</p>
           <div class="cta-row">
-            <a class="btn btn-gold" href="https://apps.apple.com/app/id6758915394" rel="noopener">
+            <a class="btn btn-gold btn-shine" href="https://apps.apple.com/app/id6758915394" rel="noopener">
               <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8 1.6 0 2 .8 3.4.8 1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.7-1-2.7-4.1zM13.9 5c.7-.9 1.2-2 1.1-3.2-1 0-2.3.7-3 1.6-.7.8-1.3 2-1.1 3.1 1.1.1 2.3-.6 3-1.5z"/></svg>
               Play free on iPhone
             </a>
@@ -86,15 +86,14 @@
         </div>
 
         <div class="hero-art">
-          <img class="hero-logo" src="assets/img/logo-2hh.png" alt="2 Hand Hold’em logo" width="500" height="433" />
-          <div class="hero-hands" aria-hidden="true">
-            <div class="hh-label">Hand 1</div>
-            <div class="hh-label">Hand 2</div>
-            <div class="mini-card c1 r">A<i>♥</i></div>
-            <div class="mini-card c2">A<i>♠</i></div>
-            <div class="mini-card c3 r">K<i>♦</i></div>
-            <div class="mini-card c4">K<i>♣</i></div>
-          </div>
+          <span class="chip chip-red hero-chip hc1" aria-hidden="true"></span>
+          <span class="chip chip-green hero-chip hc2" aria-hidden="true"></span>
+          <span class="chip chip-blue hero-chip hc3" aria-hidden="true"></span>
+          <img class="hero-logo" src="assets/img/logo-2hh.webp" alt="2 Hand Hold’em logo" width="500" height="433" fetchpriority="high" decoding="async" />
+          <button class="hero-deal" id="hero-deal" type="button" aria-label="Deal a new pair of hands">
+            <span class="pair pair-1"><span class="pair-cards"></span><span class="pair-label">Hand 1</span></span>
+            <span class="pair pair-2"><span class="pair-cards"></span><span class="pair-label">Hand 2</span></span>
+          </button>
         </div>
       </div>
     </section>
@@ -138,16 +137,16 @@
               <h3>Try the split</h3>
               <p class="demo-status" id="demo-status" aria-live="polite">Tap two cards for Hand 1.</p>
             </div>
-            <div class="felt">
-              <div class="row-label">Dealer</div>
-              <div class="cards" id="demo-dealer"></div>
-              <div class="row-label">Board</div>
-              <div class="cards" id="demo-board"></div>
-              <div class="row-label">Your four cards</div>
-              <div class="cards" id="demo-hole"></div>
-              <div class="hands">
-                <div class="hand" id="demo-h1"><span>Hand 1</span><div class="cards sm"></div><b class="result"></b></div>
-                <div class="hand" id="demo-h2"><span>Hand 2</span><div class="cards sm"></div><b class="result"></b></div>
+            <div class="table-rail">
+              <div class="felt" id="demo-felt">
+                <div class="felt-row"><span class="row-label">Dealer</span><div class="cards" id="demo-dealer"></div></div>
+                <div class="felt-row"><span class="row-label">Board</span><div class="cards" id="demo-board"></div></div>
+                <div class="felt-print" aria-hidden="true">2 Hand Hold’em</div>
+                <div class="felt-row"><span class="row-label">Your four cards</span><div class="cards hole" id="demo-hole"></div></div>
+                <div class="hands">
+                  <div class="hand" id="demo-h1"><span class="hand-name">Hand 1</span><div class="cards"></div><b class="result" aria-live="polite"></b><span class="hand-chips" aria-hidden="true"></span></div>
+                  <div class="hand" id="demo-h2"><span class="hand-name">Hand 2</span><div class="cards"></div><b class="result" aria-live="polite"></b><span class="hand-chips" aria-hidden="true"></span></div>
+                </div>
               </div>
             </div>
             <div class="demo-actions">
@@ -165,10 +164,10 @@
             <p>Four optional side bets built for the two-hand format. Paytables vary by jurisdiction — ask your dealer or the pit.</p>
           </div>
           <ul class="sidebet-list">
-            <li><img src="assets/img/flounder.png" alt="Flounder 4 logo" width="520" height="368" loading="lazy" /><strong>Flounder 4</strong></li>
-            <li><img src="assets/img/nessie.png" alt="Nessie 9 logo" width="520" height="312" loading="lazy" /><strong>Nessie 9</strong></li>
-            <li><span class="chip-ico">888</span><strong>888 Flop Bonus</strong></li>
-            <li><span class="chip-ico">♣♦</span><strong>Community Bonus</strong></li>
+            <li><img src="assets/img/flounder.webp" alt="Flounder 4 logo" width="360" height="254" loading="lazy" decoding="async" /><strong>Flounder 4</strong></li>
+            <li><img src="assets/img/nessie.webp" alt="Nessie 9 logo" width="360" height="216" loading="lazy" decoding="async" /><strong>Nessie 9</strong></li>
+            <li><span class="chip chip-red chip-lg"><b>888</b></span><strong>888 Flop Bonus</strong></li>
+            <li><span class="chip chip-blue chip-lg"><b>♣♦</b></span><strong>Community Bonus</strong></li>
           </ul>
         </div>
       </div>
@@ -199,9 +198,9 @@
           <p class="fine">Intended for an adult audience (17+) for amusement purposes only. 2 Hand Hold’em does not offer real-money gambling or an opportunity to win real money or physical prizes.</p>
         </div>
         <div class="phones" aria-label="App screenshots">
-          <figure class="phone p1"><img src="assets/img/app-01-home.jpg" alt="2 Hand Hold’em home screen" width="506" height="1100" loading="lazy" /></figure>
-          <figure class="phone p2"><img src="assets/img/app-02-table-showdown.jpg" alt="A showdown where both hands win" width="506" height="1100" loading="lazy" /></figure>
-          <figure class="phone p3"><img src="assets/img/app-03-table-arrange.jpg" alt="Arranging four cards into two hands" width="506" height="1100" loading="lazy" /></figure>
+          <figure class="phone p1"><img src="assets/img/app-01-home.webp" alt="2 Hand Hold’em home screen" width="560" height="1217" loading="lazy" decoding="async" /></figure>
+          <figure class="phone p2"><img src="assets/img/app-02-table-showdown.webp" alt="A showdown where both hands win" width="560" height="1217" loading="lazy" decoding="async" /></figure>
+          <figure class="phone p3"><img src="assets/img/app-03-table-arrange.webp" alt="Arranging four cards into two hands" width="560" height="1217" loading="lazy" decoding="async" /></figure>
         </div>
       </div>
     </section>
@@ -354,7 +353,7 @@
   <footer class="site-footer">
     <div class="wrap footer-inner">
       <div>
-        <img src="assets/img/logo-2hh.png" alt="2 Hand Hold’em" width="120" height="104" loading="lazy" />
+        <img src="assets/img/logo-2hh.webp" alt="2 Hand Hold’em" width="120" height="104" loading="lazy" decoding="async" />
       </div>
       <nav aria-label="Footer">
         <a href="https://apps.apple.com/app/id6758915394" rel="noopener">iPhone app</a>
