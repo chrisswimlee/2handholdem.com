@@ -17,7 +17,8 @@ python3 -m http.server 8080
 | `main.js` | Mobile nav, scroll reveal, interactive split demo (same dealer rule as the app: best hand using ≤2 of 3 dealer hole cards) |
 | `app/privacy/`, `app/terms/`, `app/support/`, `app/terms.pdf` | iOS app legal and support pages, copied word for word from d22soso.com/app/ (same paths, so old URLs redirect 1:1) |
 | `app-ads.txt` | AdMob seller declaration (must live at the root of the developer website domain) |
-| `assets/img/` | Logo (from d22soso), side-bet mascots (from play2hh), app icon + screenshots (from the iOS project) |
+| `assets/img/` | Logo (from d22soso), side-bet mascots (from play2hh), app icon + screenshots (from the iOS project), `og-2hh.jpg` 1200×630 social share image |
+| `sitemap.xml` | Home + the three `app/` pages; bump `lastmod` when content changes |
 
 ## Sources of truth
 

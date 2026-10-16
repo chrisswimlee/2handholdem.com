@@ -21,6 +21,17 @@
 
   document.getElementById("year").textContent = new Date().getFullYear();
 
+  // ---------- Map: load the Google embed only on request ----------
+  const mapBtn = document.getElementById("map-load");
+  if (mapBtn) mapBtn.addEventListener("click", () => {
+    const f = document.createElement("iframe");
+    f.src = mapBtn.dataset.src;
+    f.title = "Map of casinos dealing 2 Hand Hold’em";
+    f.referrerPolicy = "no-referrer-when-downgrade";
+    f.allowFullscreen = true;
+    mapBtn.replaceWith(f);
+  });
+
   // ---------- Scroll: header state + hero parallax ----------
   const heroArt = document.querySelector(".hero-art");
   let ticking = false;
