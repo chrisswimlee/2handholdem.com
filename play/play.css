@@ -47,6 +47,14 @@
   text-shadow: 0 1px 0 rgba(0,0,0,.35);
 }
 .balance b { font-weight: 850; font-variant-numeric: tabular-nums; }
+.session {
+  margin: 4px 0 0;
+  font: 600 .72rem/1 var(--mono, ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+  color: rgba(244,241,232,.72);
+}
+.session.up { color: #b6ff8a; }
+.session.down { color: #ffb4b4; }
 .chrome-actions { display: flex; gap: 8px; }
 .icon-btn {
   width: 36px; height: 36px; border-radius: 50%;
@@ -57,6 +65,46 @@
   font: 800 1rem/1 var(--display);
 }
 .icon-btn:hover { color: var(--gold-hi); }
+button.icon-btn { border: 0; padding: 0; cursor: pointer; }
+.icon-btn:focus-visible { outline: 2px solid #f4d27a; outline-offset: 2px; }
+.pill-btn { width: auto; padding: 0 12px; border-radius: 18px; font: 800 .72rem/1 var(--body); letter-spacing: .04em; text-transform: uppercase; }
+.pill-btn[aria-pressed="true"] { color: #1a1405; background: linear-gradient(180deg, #ffe7a0, #d4af37); box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 2px 0 #6b5310; }
+#sound .off, #sound[aria-pressed="false"] .on { display: none; }
+#sound[aria-pressed="false"] .off { display: block; }
+#sound[aria-pressed="false"] { color: rgba(244,241,232,.55); }
+
+/* Auto deal countdown under the Rebet button */
+.action-btn { position: relative; overflow: hidden; }
+.action-btn.auto-arm::after {
+  content: ""; position: absolute; left: 0; bottom: 0; height: 4px; width: 100%;
+  background: rgba(26,20,5,.55); transform-origin: left;
+  animation: auto-fill var(--auto, 2600ms) linear forwards;
+}
+@keyframes auto-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* Rules sheet */
+.rules {
+  width: min(520px, calc(100% - 32px)); max-height: min(86dvh, 760px);
+  margin: auto; padding: 22px 22px 18px; border: 0; border-radius: 18px;
+  color: #f4f1e8; background: linear-gradient(180deg, #123d27, #0b2a1b);
+  box-shadow: inset 0 0 0 1px rgba(212,175,55,.35), 0 24px 60px -12px #000;
+  font: 400 .92rem/1.5 var(--body); overflow: auto;
+}
+.rules::backdrop { background: rgba(4,12,8,.72); }
+.rules h2 { font: 850 1.5rem/1.1 var(--display); color: var(--gold-hi); margin: 0 40px 10px 0; }
+.rules h3 { font: 800 .8rem/1.2 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--gold-hi); margin: 18px 0 6px; }
+.rules p { margin: 0 0 8px; }
+.rules ol, .rules ul { margin: 0; padding-left: 20px; }
+.rules li { margin: 4px 0; }
+.rules b { color: #fff; }
+.rules-close { position: sticky; top: 0; float: right; z-index: 1; margin: -6px -6px 0 8px; }
+.rules-close .icon-btn { font-size: 1.3rem; }
+.rules .ranks { font-size: .85rem; color: rgba(244,241,232,.85); }
+.side-bets { list-style: none; padding: 0 !important; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.side-bets li { display: grid; justify-items: center; text-align: center; gap: 2px; margin: 0; }
+.side-bets img { width: 96px; height: 64px; object-fit: contain; }
+.side-bets span { font-size: .78rem; color: rgba(244,241,232,.7); }
+.rules .credit { margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(212,175,55,.25); font-size: .82rem; color: rgba(244,241,232,.75); }
 
 .play-page .card.ten .idx b { font-size: calc(var(--cw) * .22); letter-spacing: -.08em; }
 .lane {
@@ -140,7 +188,8 @@
   gap: 10px;
   margin-top: 4px;
 }
-.seat { text-align: center; min-width: 0; }
+.seat { text-align: center; min-width: 0; border-radius: 10px; }
+.seat[role="button"], #dealer[role="button"] { cursor: pointer; }
 .seat-name { color: rgba(244,241,232,.82); letter-spacing: .16em; }
 .slots { display: flex; justify-content: center; gap: var(--gap); }
 .slot.hot::before, .slot.hot .slot-ghost {
@@ -250,7 +299,14 @@
     0 6px 0 #3a2a10,
     0 10px 14px rgba(0,0,0,.35);
 }
-.pile b { font: inherit; }
+.pile b {
+  font: inherit;
+  display: grid; place-items: center;
+  min-width: 30px; height: 30px; padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(20,12,8,.84);
+  box-shadow: 0 0 0 1px rgba(243,236,220,.5);
+}
 
 .rail {
   margin-top: auto;
@@ -278,7 +334,10 @@
 .play-page .rail-btn:disabled { opacity: .4; cursor: default; }
 #reset { grid-area: reset; }
 #undo { grid-area: undo; }
-.play-page button.chip-btn { --cs: 42px; border: 0; padding: 0; cursor: pointer; background: none; }
+/* No background reset here: it would wipe the .chip face and leave dark ink on the wood rail. */
+.play-page button.chip-btn { --cs: 42px; border: 0; padding: 0; cursor: pointer; }
+.play-page button.chip-btn b { font-size: calc(var(--cs) * .3); }
+.play-page button.chip-btn:focus-visible, .play-page .card:focus-visible, .play-page .seat:focus-visible, .play-page #dealer:focus-visible { outline: 2px solid #f4d27a; outline-offset: 2px; }
 .play-page button.chip-btn:disabled { opacity: .38; cursor: default; }
 .chip-white { --c: #e7e1d2; --c-dark: #8a8172; color: #1a1405; }
 .chip-white b { text-shadow: none; color: #1a1405; }
@@ -325,4 +384,8 @@
 @media (prefers-reduced-motion: reduce) {
   .card.dealing { animation: none; }
   .card.dragging { transform: translate(-50%, -58%); }
+  .action-btn.auto-arm::after { animation: none; transform: scaleX(1); opacity: .5; }
 }
+
+/* Chips can be held down to keep adding; stop the phone treating that as a text press. */
+.chip-btn { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }

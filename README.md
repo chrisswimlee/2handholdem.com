@@ -13,13 +13,13 @@ python3 -m http.server 8080
 | File | Role |
 |------|------|
 | `index.html` | Single-page site: hero, how to play + split demo, side bets, iPhone app, venues, for casinos, about/IP, contact |
-| `play/` | Browser table using the iPhone rules: two blinds, split, optional 2× raise, turn and river together, dealer uses at most 2 of 3 hole cards. Practice chips in `localStorage` |
+| `play/` | Browser table using the iPhone rules: two blinds, split, optional 2× raise, turn and river together, dealer uses at most 2 of 3 hole cards. Practice chips, the hands/net session line, and an unfinished hand are kept in `localStorage`. Sounds are in `play/sfx/`. Bump the `?v=` on `play.js` / `play.css` in `play/index.html` when either changes |
 | `style.css` | Brand styles: felt green, logo red, brand gold `#d4af37` (same as the iOS app) |
 | `main.js` | Mobile nav, scroll reveal, interactive split demo (same dealer rule as the app: best hand using ≤2 of 3 dealer hole cards) |
 | `app/privacy/`, `app/terms/`, `app/support/`, `app/terms.pdf` | iOS app legal and support pages, copied word for word from d22soso.com/app/ (same paths, so old URLs redirect 1:1) |
 | `app-ads.txt` | AdMob seller declaration (must live at the root of the developer website domain) |
 | `assets/img/` | Logo (from d22soso), side-bet mascots (from play2hh), app icon + screenshots (from the iOS project), `og-2hh.jpg` 1200×630 social share image |
-| `sitemap.xml` | Home + the three `app/` pages; bump `lastmod` when content changes |
+| `sitemap.xml` | Home, `play/`, and the three `app/` pages; bump `lastmod` when content changes |
 
 ## Sources of truth
 
