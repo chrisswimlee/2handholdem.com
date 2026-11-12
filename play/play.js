@@ -13,6 +13,8 @@
   const DENOMS = [1, 5, 25, 50, 100];
   const KEY = "2hh.play.v1";
   const PREFS_KEY = "2hh.play.prefs.v1";
+  const DEAL_STEP = 60; // gap between one card leaving the shoe and the next
+  const CHIP_CLASS = { 1: "chip-white", 5: "chip-red", 25: "chip-green", 50: "chip-blue", 100: "chip-gold" };
   const AUTO_DELAY = 2600; // time to read the result before Auto deals the next hand
   const SFX = ["card", "card_flip", "chip", "chip_stack", "chip_collect", "deal", "raise", "win_nice", "win_big", "loss", "push", "shuffle"];
   const RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
@@ -42,6 +44,8 @@
   const el = {
     felt: $("felt"),
     bank: $("bank"),
+    shoe: $("shoe"),
+    chipRow: document.querySelector(".chip-row"),
     session: $("session"),
     status: $("status"),
     dealerZone: $("dealer-zone"),
@@ -70,6 +74,8 @@
     rules: $("rules"),
   };
   const slotEls = [...document.querySelectorAll(".slot")];
+  const chipBtn = {};
+  document.querySelectorAll("[data-chip]").forEach((btn) => { chipBtn[btn.dataset.chip] = btn; });
 
   // ---------- Preferences, sound, auto-deal ----------
   const prefs = { sound: true, auto: false };
@@ -152,6 +158,8 @@
   let seq = 1;
   let stats = { hands: 0, net: 0 }; // since the last re-rack
   let pending = null; // serialized in-progress hand, so a reload resumes it instead of voiding it
+  let dropFrom = null; // where a dragged card was let go, so it glides from there
+  let shownBank = null;
   let lastPointerUp = -Infinity; // time of our last card pointerup; the click that follows it is ignored
 
   function load() {
@@ -267,32 +275,111 @@
     labelCard(node);
   }
 
-  function armDeal(node, i) {
-    if (reduceMotion) return;
-    node.classList.add("dealing");
-    node.style.setProperty("--d", `${i * 42}ms`);
-    node.style.setProperty("--fx", "120px");
-    node.style.setProperty("--fy", "-30px");
-    const clear = () => node.classList.remove("dealing");
-    node.addEventListener("animationend", clear, { once: true });
-    setTimeout(clear, i * 42 + 700);
+  // ---------- Motion ----------
+  const rectOf = (node) => node.getBoundingClientRect();
+  const center = (r) => ({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+
+  // Cards come out of the shoe beside the dealer and are swept to the
+  // opposite corner when the hand is over.
+  function muckPoint() {
+    const f = rectOf(el.felt);
+    const s = rectOf(el.shoe);
+    return { x: f.left + (f.right - s.right) + s.width / 2, y: s.top + s.height / 2 };
   }
 
-  function mountRow(row, cards, { down = false, animate = false } = {}) {
+  // The card must already be in its place: the flight is measured from there.
+  function armDeal(node, i) {
+    if (reduceMotion) return;
+    const from = center(rectOf(el.shoe));
+    const at = center(rectOf(node));
+    node.style.setProperty("--d", `${i * DEAL_STEP}ms`);
+    node.style.setProperty("--fx", `${from.x - at.x}px`);
+    node.style.setProperty("--fy", `${from.y - at.y}px`);
+    node.classList.add("dealing");
+    const clear = () => node.classList.remove("dealing");
+    node.addEventListener("animationend", clear, { once: true });
+    setTimeout(clear, i * DEAL_STEP + 700);
+  }
+
+  // Returns how long the sweep takes, 0 when there is nothing to sweep.
+  function collectCards() {
+    const cards = [...el.felt.querySelectorAll(".card")];
+    if (reduceMotion || !cards.length) return 0;
+    const to = muckPoint();
+    const spots = cards.map((node) => center(rectOf(node)));
+    cards.forEach((node, i) => {
+      node.style.setProperty("--d", `${i * 16}ms`);
+      node.style.setProperty("--tx", `${to.x - spots[i].x}px`);
+      node.style.setProperty("--ty", `${to.y - spots[i].y}px`);
+      node.classList.add("collect");
+    });
+    return cards.length * 16 + 300;
+  }
+
+  function bump(node) {
+    if (reduceMotion) return;
+    node.classList.remove("bump");
+    void node.offsetWidth;
+    node.classList.add("bump");
+  }
+
+  // A loose chip that travels between two spots on the table.
+  let flying = 0;
+  function flyChip(from, to, value, { delay = 0, land = null } = {}) {
+    if (reduceMotion || flying > 14) { if (land) land(); return; }
+    const a = center(from);
+    const b = center(to);
+    const size = 30;
+    const node = document.createElement("span");
+    const denom = DENOMS.slice().reverse().find((d) => d <= value) || 1;
+    node.className = `chip fly ${CHIP_CLASS[denom]}`;
+    node.setAttribute("aria-hidden", "true");
+    node.style.left = `${a.x - size / 2}px`;
+    node.style.top = `${a.y - size / 2}px`;
+    document.body.appendChild(node);
+    flying += 1;
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const lift = Math.min(36, 12 + Math.hypot(dx, dy) * 0.1);
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      flying -= 1;
+      node.remove();
+      if (land) land();
+    };
+    const anim = node.animate([
+      { transform: "translate(0, 0) scale(1)", opacity: 0 },
+      { opacity: 1, offset: 0.1 },
+      { transform: `translate(${dx / 2}px, ${dy / 2 - lift}px) scale(1.1)`, offset: 0.5 },
+      { transform: `translate(${dx}px, ${dy}px) scale(.86)`, opacity: 1 },
+    ], { duration: 340, delay, easing: "cubic-bezier(.3, .1, .3, 1)", fill: "backwards" });
+    anim.onfinish = finish;
+    anim.oncancel = finish;
+    setTimeout(finish, delay + 600);
+  }
+
+  function mountRow(row, cards, { down = false, animate = false, start = 0 } = {}) {
     [...row.children].forEach((cell, i) => {
       cell.replaceChildren();
       const c = cards[i];
       if (!c) return;
       if (!c.el) makeCard(c, { down });
       else flip(c.el, !down);
-      if (animate) armDeal(c.el, i);
       cell.appendChild(c.el);
+      if (animate) armDeal(c.el, start + i);
     });
   }
 
   function clearSeats() {
     slotEls.forEach((slot) => slot.replaceChildren());
     el.tray.replaceChildren();
+    clearResults();
+  }
+
+  // The last hand's words go as soon as its cards start to leave.
+  function clearResults() {
     [el.h1, el.h2].forEach((seat) => {
       seat.classList.remove("win", "lose");
       const result = seat.querySelector(".result");
@@ -461,7 +548,7 @@
   }
 
   function dropOnSlot(card, i) {
-    if (hand.slots[i] === card) return;
+    if (hand.slots[i] === card) { sync(); return; }
     userMove(() => {
       const from = hand.slots.indexOf(card);
       const trayAt = hand.tray.indexOf(card);
@@ -492,17 +579,51 @@
 
   function sync() {
     if (!hand) return;
+    // Remember where each of the four cards is, move them, then glide each
+    // one from its old spot to its new one.
+    const before = new Map();
+    if (!reduceMotion) {
+      const dropped = dropFrom && performance.now() - dropFrom.at < 150 ? dropFrom : null;
+      hand.hole.forEach((c) => {
+        if (c.el.isConnected) before.set(c, dropped && dropped.card === c ? dropped.rect : rectOf(c.el));
+      });
+    }
+    dropFrom = null;
     hand.slots.forEach((c, i) => {
       if (c) slotEls[i].replaceChildren(c.el);
       else slotEls[i].replaceChildren();
     });
     el.tray.replaceChildren(...hand.tray.map((c) => c.el));
     paint();
+    before.forEach((from, c) => {
+      c.el.getAnimations().forEach((a) => { if (a.id === "glide") a.cancel(); });
+      const to = rectOf(c.el);
+      const dx = from.left - to.left;
+      const dy = from.top - to.top;
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+      c.el.classList.add("moving");
+      const anim = c.el.animate(
+        [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "translate(0, 0)" }],
+        { duration: 230, easing: "cubic-bezier(.22, .8, .24, 1)", id: "glide" },
+      );
+      anim.onfinish = () => c.el.classList.remove("moving");
+      anim.oncancel = anim.onfinish;
+    });
+  }
+
+  function paintBank() {
+    el.bank.textContent = fmt(live);
+    if (shownBank !== null && live !== shownBank && !reduceMotion) {
+      el.bank.classList.remove("up", "down");
+      void el.bank.offsetWidth;
+      el.bank.classList.add(live > shownBank ? "up" : "down");
+    }
+    shownBank = live;
   }
 
   function paint() {
-    el.bank.textContent = fmt(live);
-    el.session.hidden = stats.hands < 1;
+    paintBank();
+    el.session.style.visibility = stats.hands < 1 ? "hidden" : ""; // keeps its line, so the balance never jumps
     el.session.textContent = `${fmt(stats.hands)} ${stats.hands === 1 ? "hand" : "hands"} · ${stats.net > 0 ? "+" : stats.net < 0 ? "−" : ""}${fmt(Math.abs(stats.net))}`;
     el.session.className = "session " + (stats.net > 0 ? "up" : stats.net < 0 ? "down" : "");
     const editing = canEditBet();
@@ -514,7 +635,8 @@
     el.reset.disabled = busy || (!cardUndo && (!editing || blind === 0));
     el.rerack.hidden = busy || live >= 2 || phase === "arrange" || phase === "reveal";
 
-    const showGo = busy
+    // While the four cards are being dealt the tray owns this spot.
+    const showGo = (busy && phase !== "arrange")
       || (phase === "showdown" && live >= 2)
       || ((phase === "ante") && blind >= 1 && live >= blind * 2)
       || (phase === "arrange" && handsSet() && blind >= 1);
@@ -525,7 +647,7 @@
     const showRaise = phase === "ante" || phase === "arrange";
     [el.raise1, el.raise2].forEach((btn, i) => {
       const on = !!(hand && (i === 0 ? hand.raise1 : hand.raise2));
-      btn.hidden = !showRaise;
+      btn.style.visibility = showRaise ? "" : "hidden"; // keeps its space, so nothing below it moves
       btn.disabled = busy || phase !== "arrange" || !handsSet();
       btn.setAttribute("aria-pressed", String(on));
       btn.textContent = on ? "Undo 2x Raise" : "Raise 2x";
@@ -590,25 +712,38 @@
     dropSettledRaises();
     save();
     paint();
+    const from = rectOf(chipBtn[value]);
+    [el.pile1, el.pile2].forEach((pile, i) => {
+      flyChip(from, rectOf(pile), value, { delay: i * 50, land: () => bump(pile) });
+    });
   }
 
   function undoChip() {
     if (!canEditBet() || undoStack.length === 0) return;
-    blind = Math.max(0, blind - undoStack.pop());
+    const value = undoStack.pop();
+    const piles = [rectOf(el.pile1), rectOf(el.pile2)]; // measured before they can empty and hide
+    blind = Math.max(0, blind - value);
     cancelAuto();
     sfx("chip", 0.6);
     dropSettledRaises();
     save();
     paint();
+    piles.forEach((from, i) => flyChip(from, rectOf(chipBtn[value] || el.chipRow), value, { delay: i * 50 }));
   }
 
   function clearBet() {
     cancelAuto();
+    const was = blind;
+    const piles = [rectOf(el.pile1), rectOf(el.pile2)];
     blind = 0;
     undoStack = [];
     if (hand) { hand.raise1 = false; hand.raise2 = false; }
     save();
     paint();
+    if (was > 0) {
+      sfx("chip_collect", 0.6);
+      piles.forEach((from, i) => flyChip(from, rectOf(el.chipRow), was, { delay: i * 50 }));
+    }
   }
 
   function onReset() {
@@ -641,10 +776,12 @@
     if (busy || phase !== "arrange" || !handsSet()) return;
     releaseStatus();
     const key = which === 1 ? "raise1" : "raise2";
+    const pile = which === 1 ? el.pile1 : el.pile2;
     if (hand[key]) {
       hand[key] = false;
       sfx("chip", 0.5);
       paint();
+      [0, 1].forEach((k) => flyChip(rectOf(pile), rectOf(el.chipRow), blind, { delay: k * 70 }));
       return;
     }
     const next = raiseCost(which === 1 || hand.raise1, which === 2 || hand.raise2);
@@ -655,6 +792,7 @@
     hand[key] = true;
     sfx("raise");
     paint();
+    [0, 1].forEach((k) => flyChip(rectOf(el.chipRow), rectOf(pile), blind, { delay: k * 70, land: () => bump(pile) }));
   }
 
   const packCard = (c) => [c.r, c.s];
@@ -747,9 +885,11 @@
     paint();
     sfx("shuffle", 0.8);
     try {
-      if (!reduceMotion && el.felt.querySelector(".card")) {
-        el.felt.querySelectorAll(".card").forEach((c) => c.classList.add("collect"));
-        await wait(280);
+      const sweep = collectCards();
+      if (sweep) {
+        clearResults();
+        el.dealerLabel.textContent = "Dealer";
+        await wait(sweep);
       }
       const deck = newDeck();
       const hole = [draw(deck), draw(deck), draw(deck), draw(deck)];
@@ -776,15 +916,21 @@
       el.dealerZone.classList.add("on");
       el.boardZone.classList.add("dealt");
       el.dealerLabel.textContent = "Dealer";
-      mountRow(el.dealer, dealer, { down: true, animate: true });
-      mountRow(el.board, [...flop, null, null], { down: true, animate: true });
-      hole.forEach((c, i) => { armDeal(c.el, i); el.tray.appendChild(c.el); });
       phase = "arrange";
+      paint();
+      // Both antes go in, then the cards: yours, the flop, the dealer's.
+      [el.pile1, el.pile2].forEach((pile, i) => {
+        flyChip(rectOf(el.chipRow), rectOf(pile), blind, { delay: i * 70, land: () => bump(pile) });
+      });
+      el.tray.replaceChildren(...hole.map((c) => c.el));
+      hole.forEach((c, i) => armDeal(c.el, i));
+      mountRow(el.board, [...flop, null, null], { down: true, animate: true, start: 4 });
+      mountRow(el.dealer, dealer, { down: true, animate: true, start: 7 });
       sfx("deal");
-      await wait(hole.length * 42 + 280);
+      await wait(3 * DEAL_STEP + 420);
       sfx("card_flip", 0.8);
       for (const c of hole) { flip(c.el); await wait(60); }
-      await wait(80);
+      await wait(60);
       sfx("card_flip", 0.8);
       for (const c of flop) { flip(c.el); await wait(70); }
       releaseStatus();
@@ -815,15 +961,15 @@
     sfx(extra > 0 ? "chip_stack" : "deal");
     try {
       makeCard(hand.turn, { down: true });
-      armDeal(hand.turn.el, 0);
       el.board.children[3].appendChild(hand.turn.el);
+      armDeal(hand.turn.el, 0);
       await wait(260);
       sfx("card_flip");
       flip(hand.turn.el);
       await wait(280);
       makeCard(hand.river, { down: true });
-      armDeal(hand.river.el, 0);
       el.board.children[4].appendChild(hand.river.el);
+      armDeal(hand.river.el, 0);
       await wait(260);
       sfx("card_flip");
       flip(hand.river.el);
@@ -831,7 +977,7 @@
       sfx("card_flip", 0.8);
       for (const c of hand.dealer) { flip(c.el); await wait(120); }
       await wait(200);
-      settle();
+      settle(true);
       phase = "showdown";
     } finally {
       busy = false;
@@ -840,7 +986,8 @@
     scheduleAuto();
   }
 
-  function settle() {
+  // `animate` moves the chips; a hand finished by a reload settles without it.
+  function settle(animate = false) {
     const board = [...hand.flop, hand.turn, hand.river];
     const h1 = [hand.slots[0], hand.slots[1]];
     const h2 = [hand.slots[2], hand.slots[3]];
@@ -892,6 +1039,18 @@
     el.coach1.textContent = "";
     el.coach2.textContent = "";
 
+    if (animate) {
+      const house = rectOf(el.dealer);
+      [[el.pile1, o1, bet1], [el.pile2, o2, bet2]].forEach(([pile, o, bet], i) => {
+        const at = rectOf(pile);
+        if (o === "win") {
+          [0, 1].forEach((k) => flyChip(house, at, bet, { delay: i * 120 + k * 80, land: () => bump(pile) }));
+        } else if (o === "loss") {
+          flyChip(at, house, bet, { delay: i * 120 });
+        }
+      });
+    }
+
     el.overall.textContent = net > 0 ? `You win ${chips(net)}` : net < 0 ? `You lose ${chips(-net)}` : o1 === o2 ? "Push" : "Even";
     sfx(net >= blind * 4 ? "win_big" : net > 0 ? "win_nice" : net < 0 ? "loss" : "push");
     el.overall.className = "overall " + (net > 0 ? "up" : net < 0 ? "down" : "push");
@@ -931,6 +1090,7 @@
     const node = card;
     const hit = underPointer(e.clientX, e.clientY);
     drag = null;
+    if (node.classList.contains("dragging")) dropFrom = { card: node.card, rect: rectOf(node), at: performance.now() };
     node.classList.remove("dragging");
     node.style.left = "";
     node.style.top = "";

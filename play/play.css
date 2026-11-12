@@ -4,6 +4,10 @@
 
 .play-page {
   --cw: clamp(46px, 11.5vw, 64px);
+  --sw: calc(var(--cw) * .78); /* the shoe's cards */
+  --tw: var(--cw); /* tray cards: .card sets its own --cw, so the table size is passed down under another name */
+  overflow-x: hidden; /* a card or chip in flight must never widen the page */
+  overflow-x: clip;
   --gap: 6px;
   min-height: 100dvh;
   margin: 0;
@@ -49,6 +53,7 @@
 .balance b { font-weight: 850; font-variant-numeric: tabular-nums; }
 .session {
   margin: 4px 0 0;
+  min-height: 1em;
   font: 600 .72rem/1 var(--mono, ui-monospace, monospace);
   font-variant-numeric: tabular-nums;
   color: rgba(244,241,232,.72);
@@ -117,7 +122,18 @@ button.icon-btn { border: 0; padding: 0; cursor: pointer; }
 }
 
 .zone { text-align: center; }
-#dealer-zone:not(.on) { display: none; }
+/* Every part of the table keeps its space in every phase, so nothing shifts
+   when a hand starts, when the hands are set, or at the showdown. */
+#dealer-zone { position: relative; }
+#dealer-zone:not(.on) .zone-label { opacity: .6; }
+.shoe {
+  position: absolute; right: 4px; bottom: calc(var(--cw) * .154);
+  width: var(--sw); height: calc(var(--sw) * 1.4);
+  pointer-events: none;
+}
+.shoe .card-back { --cw: var(--sw); transform: none; }
+.shoe .card-back:nth-child(1) { transform: translate(3px, 3px); }
+.shoe .card-back:nth-child(2) { transform: translate(1.5px, 1.5px); }
 .card, .slot, .tray, .row { touch-action: none; }
 .zone-label, .coach, .seat-name {
   margin: 0 0 4px;
@@ -129,8 +145,7 @@ button.icon-btn { border: 0; padding: 0; cursor: pointer; }
   text-shadow: 0 1px 0 #123, 0 0 1px #123;
 }
 .zone-label { letter-spacing: .14em; }
-.coach:empty { display: none; }
-.coach { color: #cfe6ff; min-height: 0; }
+.coach { color: #cfe6ff; min-height: 1em; }
 
 .row {
   display: flex;
@@ -156,9 +171,11 @@ button.icon-btn { border: 0; padding: 0; cursor: pointer; }
   position: absolute; inset: 0;
   width: 100%; height: 100%;
 }
+/* Same size as a seated card. At the .card default of 56px four of them were
+   wider than the space between the bet piles and pushed the page sideways. */
 .tray .card {
   position: relative; inset: auto;
-  width: var(--cw); height: calc(var(--cw) * 1.4);
+  width: var(--tw); height: calc(var(--tw) * 1.4);
 }
 
 .board-zone { position: relative; }
@@ -199,7 +216,7 @@ button.icon-btn { border: 0; padding: 0; cursor: pointer; }
 .seat .result {
   display: block;
   margin: 4px 0 0;
-  min-height: 1.15em;
+  min-height: 2.4em; /* hand name + result */
   font: 800 .82rem/1.2 var(--display);
   font-stretch: 92%;
 }
@@ -246,9 +263,10 @@ button.icon-btn { border: 0; padding: 0; cursor: pointer; }
   grid-template-columns: 72px 1fr 72px;
   align-items: center;
   gap: 8px;
-  min-height: 74px;
+  min-height: max(74px, calc(var(--cw) * 1.4 + 8px));
 }
-.action-center { display: grid; place-items: center; min-height: 64px; }
+.action-center { display: grid; place-items: center; min-height: max(64px, calc(var(--cw) * 1.4)); }
+.action-center > * { grid-area: 1 / 1; } /* tray and buttons share one spot */
 .tray {
   display: flex;
   justify-content: center;
@@ -366,7 +384,35 @@ button.icon-btn { border: 0; padding: 0; cursor: pointer; }
   transition: none;
   filter: drop-shadow(0 12px 10px rgba(0,0,0,.45));
 }
-.card.dealing { animation: dealIn .45s var(--ease-out) backwards; animation-delay: var(--d, 0s); }
+/* Dealt from the shoe, swept to the far corner. --fx/--fy and --tx/--ty are
+   measured per card in play.js. */
+.play-page .card.dealing { animation: dealFromShoe .42s var(--ease-out) backwards; animation-delay: var(--d, 0s); z-index: 3; }
+@keyframes dealFromShoe {
+  from { opacity: 0; transform: translate(var(--fx, 120px), var(--fy, -30px)) rotate(14deg) scale(.78); }
+  12% { opacity: 1; }
+}
+.play-page .card.collect {
+  transition: transform .3s cubic-bezier(.5, 0, .8, .5) var(--d, 0s), opacity .16s linear calc(var(--d, 0s) + .15s);
+  transform: translate(var(--tx, -120px), var(--ty, -140px)) rotate(-16deg) scale(.7) !important;
+  opacity: 0;
+  z-index: 3;
+}
+.card.moving { z-index: 4; }
+
+/* Chips in flight, and where they land */
+.chip.fly {
+  --cs: 30px;
+  position: fixed; z-index: 45; margin: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.pile.bump { animation: pileBump .3s var(--ease-back); }
+@keyframes pileBump { 35% { transform: scale(1.14) translateY(-2px); } }
+#bank { display: inline-block; }
+#bank.up { animation: bankUp .6s var(--ease-out); }
+#bank.down { animation: bankDown .35s var(--ease-out); }
+@keyframes bankUp { 30% { transform: scale(1.12); color: #b6ff8a; } }
+@keyframes bankDown { 40% { transform: translateY(2px); color: #ffd9a8; } }
 
 @media (max-height: 760px) {
   .play-page { --cw: 42px; }
@@ -381,8 +427,17 @@ button.icon-btn { border: 0; padding: 0; cursor: pointer; }
   .pile { width: 50px; height: 50px; }
 }
 
+@media (max-width: 340px) {
+  .action { grid-template-columns: 48px 1fr 48px; gap: 4px; }
+  .pile { width: 46px; height: 46px; }
+  .play-page button.chip-btn { --cs: 32px; }
+  .play-page .rail-btn { width: 42px; }
+  .chip-row { gap: 4px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .card.dealing { animation: none; }
+  .play-page .card.dealing, .pile.bump, #bank.up, #bank.down { animation: none; }
+  .play-page .card.collect { transition: none; }
   .card.dragging { transform: translate(-50%, -58%); }
   .action-btn.auto-arm::after { animation: none; transform: scaleX(1); opacity: .5; }
 }

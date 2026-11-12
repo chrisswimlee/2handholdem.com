@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,600..900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../style.css" />
-  <link rel="stylesheet" href="play.css?v=9" />
+  <link rel="stylesheet" href="play.css?v=10" />
 </head>
 <body class="play-page">
   <a class="skip" href="#felt">Skip to the table</a>
@@ -27,7 +27,7 @@
     <header class="chrome">
       <div class="bankroll">
         <p class="balance"><b id="bank">50,000</b> chips</p>
-        <p class="session" id="session" hidden></p>
+        <p class="session" id="session"></p>
       </div>
       <div class="chrome-actions">
         <button class="icon-btn" id="sound" type="button" aria-pressed="true" aria-label="Sound">
@@ -47,6 +47,7 @@
     <section class="zone" id="dealer-zone" aria-label="Dealer">
       <p class="zone-label" id="dealer-label">Dealer</p>
       <div class="row" id="dealer"></div>
+      <div class="shoe" id="shoe" aria-hidden="true"><i class="card-back"></i><i class="card-back"></i><i class="card-back"></i></div>
     </section>
 
     <section class="zone board-zone" aria-label="Board">
@@ -66,7 +67,7 @@
           <div class="slot" data-slot="1"></div>
         </div>
         <p class="result"></p>
-        <button class="raise-btn" id="raise1" type="button" hidden aria-pressed="false">Raise 2x</button>
+        <button class="raise-btn" id="raise1" type="button" disabled aria-pressed="false">Raise 2x</button>
       </section>
       <section class="seat" id="h2">
         <p class="coach" id="coach2"></p>
@@ -76,7 +77,7 @@
           <div class="slot" data-slot="3"></div>
         </div>
         <p class="result"></p>
-        <button class="raise-btn" id="raise2" type="button" hidden aria-pressed="false">Raise 2x</button>
+        <button class="raise-btn" id="raise2" type="button" disabled aria-pressed="false">Raise 2x</button>
       </section>
     </div>
 
@@ -139,6 +140,6 @@
 
   <p class="fine">2 Hand Hold&rsquo;em&trade; created by Wayne &ldquo;D22-soso&rdquo; Chiang. Practice chips stay in this browser. 17+, amusement only — no real-money gambling. Daily Split, Arcade, and themes are on the <a href="https://apps.apple.com/app/id6758915394" rel="noopener">App Store</a>.</p>
 
-  <script src="play.js?v=7" defer></script>
+  <script src="play.js?v=8" defer></script>
 </body>
 </html>
