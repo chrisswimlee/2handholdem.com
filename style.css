@@ -619,6 +619,15 @@ button.card[data-hand="2"]::after { background: #e7e1d2; }
 .site-footer nav { display: flex; flex-wrap: wrap; gap: 4px 28px; justify-content: flex-end; }
 .site-footer nav a { color: var(--ink-2); text-decoration: none; font-size: .92rem; min-height: 40px; display: inline-flex; align-items: center; }
 @media (hover: hover) { .site-footer nav a:hover { color: var(--ink); } }
+.footer-inner > div:first-child { grid-row: span 2; }
+.social { grid-column: 2; display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; list-style: none; margin: 0; padding: 0; }
+.social a {
+  display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  color: var(--ink-2); border: 1px solid var(--line); transition: color .2s, border-color .2s, transform .2s var(--ease-out);
+}
+.social svg { width: 19px; height: 19px; }
+.social a:active { transform: scale(.94); }
+@media (hover: hover) { .social a:hover { color: var(--gold-hi); border-color: rgba(212,175,55,.7); } }
 .legal { grid-column: 1 / -1; font-size: .78rem; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 24px; }
 .legal p { margin: 0 0 6px; }
 
@@ -786,6 +795,8 @@ button.card[data-hand="2"]::after { background: #e7e1d2; }
   .pillars article { padding: 24px; }
   .footer-inner { grid-template-columns: 1fr; }
   .site-footer nav { justify-content: flex-start; }
+  .footer-inner > div:first-child { grid-row: auto; }
+  .social { grid-column: auto; justify-content: flex-start; }
   .casino-cta { padding: 24px; }
   .casino-cta .btn { width: 100%; }
   .appstore { flex: 1 1 100%; justify-content: center; }
