@@ -32,8 +32,21 @@
     mapBtn.replaceWith(f);
   });
 
-  // ---------- Scroll: header state + hero parallax ----------
-  const heroArt = document.querySelector(".hero-art");
+  // ---------- Venue cards and map pins light each other up ----------
+  document.querySelectorAll(".venues li[data-v]").forEach((li) => {
+    const pin = document.querySelector(`.us-map .pin[data-v="${li.dataset.v}"]`);
+    if (!pin) return;
+    const set = (on) => { pin.classList.toggle("on", on); li.classList.toggle("on", on); };
+    li.addEventListener("pointerenter", () => set(true));
+    li.addEventListener("pointerleave", () => set(false));
+    li.addEventListener("focusin", () => set(true));
+    li.addEventListener("focusout", () => set(false));
+    pin.addEventListener("pointerenter", () => set(true));
+    pin.addEventListener("pointerleave", () => set(false));
+  });
+
+  // ---------- Scroll: header state + hero camera ----------
+  const scene = document.getElementById("hero-scene");
   let ticking = false;
   const onScroll = () => {
     if (ticking) return;
@@ -41,12 +54,79 @@
     requestAnimationFrame(() => {
       const y = window.scrollY;
       header.classList.toggle("scrolled", y > 8);
-      if (!reduceMotion && y < 900) heroArt.style.setProperty("--py", `${y}px`);
+      // The camera rises toward top-down as the hero scrolls away.
+      if (!reduceMotion && y < 900) scene.style.setProperty("--sc", Math.min(y / 600, 1).toFixed(3));
       ticking = false;
     });
   };
   addEventListener("scroll", onScroll, { passive: true });
   onScroll();
+
+  // ---------- Hero: the table leans toward the pointer ----------
+  if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    const heroEl = document.querySelector(".hero");
+    let raf = 0, px = 0, py = 0;
+    const lean = () => {
+      raf = 0;
+      scene.style.setProperty("--rz", `${(px * -9).toFixed(2)}deg`);
+      scene.style.setProperty("--rx", `${(py * -7).toFixed(2)}deg`);
+      // The lamp pool on the felt follows the pointer too.
+      scene.style.setProperty("--px", px.toFixed(3));
+      scene.style.setProperty("--py", py.toFixed(3));
+    };
+    heroEl.addEventListener("pointermove", (e) => {
+      const r = heroEl.getBoundingClientRect();
+      px = (e.clientX - r.left) / r.width - 0.5;
+      py = (e.clientY - r.top) / r.height - 0.5;
+      if (!raf) raf = requestAnimationFrame(lean);
+    });
+    heroEl.addEventListener("pointerleave", () => { px = py = 0; if (!raf) raf = requestAnimationFrame(lean); });
+  }
+
+  // ---------- Hero: drag to spin the table; it springs back on release ----------
+  {
+    let start = null, dragged = false, swallowClick = false, springTimer = 0;
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+    scene.addEventListener("pointerdown", (e) => {
+      if (e.button) return;
+      start = { x: e.clientX, y: e.clientY };
+      dragged = swallowClick = false;
+    });
+    addEventListener("pointermove", (e) => {
+      if (!start) return;
+      const dx = e.clientX - start.x, dy = e.clientY - start.y;
+      if (!dragged && Math.hypot(dx, dy) < 7) return;
+      if (!dragged) { dragged = true; clearTimeout(springTimer); scene.classList.remove("spring"); scene.classList.add("dragging"); }
+      scene.style.setProperty("--dz", `${clamp(dx * -0.3, -70, 70).toFixed(1)}deg`);
+      scene.style.setProperty("--dx", `${clamp(dy * -0.14, -16, 14).toFixed(1)}deg`);
+    });
+    const release = () => {
+      if (!start) return;
+      start = null;
+      if (!dragged) return;
+      dragged = false;
+      swallowClick = true;
+      scene.classList.remove("dragging");
+      scene.classList.add("spring");
+      scene.style.setProperty("--dz", "0deg");
+      scene.style.setProperty("--dx", "0deg");
+      springTimer = setTimeout(() => scene.classList.remove("spring"), 1050);
+    };
+    addEventListener("pointerup", release);
+    addEventListener("pointercancel", release);
+    // A drag that ends over the cards, deck or chips shouldn't also count as a tap.
+    scene.addEventListener("click", (e) => { if (swallowClick) { e.stopPropagation(); swallowClick = false; } }, true);
+  }
+
+  // ---------- Demo table leans gently toward the pointer ----------
+  if (!reduceMotion && matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    const rail = document.querySelector("#demo .table-rail");
+    rail.addEventListener("pointermove", (e) => {
+      const r = rail.getBoundingClientRect();
+      rail.style.setProperty("--lean", `${(((e.clientX - r.left) / r.width - 0.5) * 7).toFixed(2)}deg`);
+    });
+    rail.addEventListener("pointerleave", () => rail.style.setProperty("--lean", "0deg"));
+  }
 
   // ---------- Reveal on scroll (staggered within each group) ----------
   if ("IntersectionObserver" in window && !reduceMotion) {
@@ -133,7 +213,7 @@
   // ---------- Hero: deal four, flip, split into two hands ----------
   const heroDeal = document.getElementById("hero-deal");
   const heroRows = heroDeal.querySelectorAll(".pair-cards");
-  let heroBusy = false;
+  let heroBusy = true; // held until the first deal has run
 
   async function heroRun(cards) {
     heroBusy = true;
@@ -142,10 +222,11 @@
     els.forEach((el) => el.setAttribute("aria-hidden", "true"));
     heroRows[0].replaceChildren();
     heroRows[1].replaceChildren();
-    els.forEach((el, i) => dealInto(heroRows[i < 2 ? 0 : 1], el, i, { x: 0, y: -160 }));
-    await wait(650);
-    for (const el of els) { flip(el); await wait(90); }
-    await wait(500);
+    // Arc in from the deck (CSS: heroDeal), then lift and turn over one by one.
+    els.forEach((el, i) => dealInto(heroRows[i < 2 ? 0 : 1], el, i * 1.6));
+    await wait(1300);
+    for (const el of els) { flip(el); await wait(150); }
+    await wait(750);
     heroDeal.classList.add("split");
     await wait(700);
     heroBusy = false;
@@ -158,8 +239,26 @@
     const x = pool[0], y = pool.find((c) => c.r === x.r && c.s !== x.s);
     return [a, b, x, y];
   }
-  heroDeal.addEventListener("click", () => { if (!heroBusy) heroRun(heroRandom()); });
-  heroRun([{ r: 14, s: 1 }, { r: 14, s: 0 }, { r: 13, s: 2 }, { r: 13, s: 3 }]);
+  const heroRedeal = () => { if (!heroBusy) heroRun(heroRandom()); };
+  heroDeal.addEventListener("click", heroRedeal);
+  scene.querySelector(".deck").addEventListener("click", heroRedeal);
+
+  // Tap a chip stack: the top chip flips into the air and lands back on the stack.
+  scene.querySelectorAll(".stack").forEach((stack) => {
+    stack.addEventListener("click", () => {
+      const chip = stack.lastElementChild;
+      if (reduceMotion || chip.getAnimations().length) return;
+      const base = getComputedStyle(chip).transform;
+      const h = stack.offsetWidth * 2.1;
+      chip.animate([
+        { transform: `${base} translateZ(0px) rotateX(0deg)`, easing: "cubic-bezier(.2,.7,.4,1)" },
+        { transform: `${base} translateZ(${h}px) rotateX(540deg)`, easing: "cubic-bezier(.6,0,.8,.4)" },
+        { transform: `${base} translateZ(0px) rotateX(1080deg)` },
+      ], { duration: 820 });
+    });
+  });
+  // First deal waits for the table to swing into place.
+  wait(900).then(() => heroRun([{ r: 14, s: 1 }, { r: 14, s: 0 }, { r: 13, s: 2 }, { r: 13, s: 3 }]));
 
   // ---------- Hand evaluation ----------
   const NAMES = ["High card", "Pair", "Two pair", "Three of a kind", "Straight", "Flush", "Full house", "Four of a kind", "Straight flush"];
@@ -211,7 +310,7 @@
   const el = {
     dealer: $("demo-dealer"), board: $("demo-board"), hole: $("demo-hole"),
     h1: $("demo-h1"), h2: $("demo-h2"), status: $("demo-status"),
-    go: $("demo-go"), fresh: $("demo-new"),
+    go: $("demo-go"), fresh: $("demo-new"), felt: $("demo-felt"),
   };
   let s = null;
 
@@ -273,20 +372,40 @@
 
   function hand2() { return s.h1.length === 2 ? s.hole.filter((c) => !s.h1.includes(c)) : []; }
 
+  // Centre of a node in the felt's own flat layout space (offsets ignore the 3D tilt).
+  function feltCentre(node) {
+    let x = node.offsetWidth / 2, y = node.offsetHeight / 2;
+    for (let n = node; n && n !== el.felt; n = n.offsetParent) { x += n.offsetLeft; y += n.offsetTop; }
+    return { x, y };
+  }
+  // Fly a hand card in from the hole card it came from: up off the felt, across, and down.
+  function flyIn(card, from, i) {
+    const a = feltCentre(from), b = feltCentre(card);
+    const dx = a.x - b.x, dy = a.y - b.y, sc = from.offsetWidth / card.offsetWidth;
+    const lean = dx > 0 ? 7 : -7;
+    card.animate([
+      { transform: `translate3d(${dx}px, ${dy}px, 0) rotate(0deg) scale(${sc})` },
+      { transform: `translate3d(${dx * 0.42}px, ${dy * 0.42}px, 78px) rotate(${lean}deg) scale(${(sc + 1) / 2})`, offset: 0.5 },
+      { transform: "translate3d(0, 0, 0) rotate(0deg) scale(1)" },
+    ], { duration: 560, delay: i * 90, easing: "cubic-bezier(.3,.55,.3,1)", fill: "backwards" });
+  }
+
   function renderHands() {
     const prev = s.shown || { h1: [], h2: [] };
     const next = { h1: s.h1.slice(), h2: hand2() };
+    const arrivals = [];
     [[el.h1, "h1"], [el.h2, "h2"]].forEach(([wrap, key]) => {
       const row = wrap.querySelector(".cards");
       const kids = next[key].map((c) => {
         const k = makeCard(c, { small: true });
         k.setAttribute("aria-hidden", "true");
-        if (!prev[key].includes(c) && !reduceMotion) k.classList.add("pop-in");
+        if (!prev[key].includes(c)) arrivals.push([k, s.els.get(c)]);
         return k;
       });
       while (kids.length < 2) kids.push(ghost());
       row.replaceChildren(...kids);
     });
+    if (!reduceMotion) arrivals.forEach(([k, from], i) => flyIn(k, from, i));
     s.shown = next;
   }
 
@@ -328,9 +447,10 @@
   }
 
   function chips(n, color) {
-    return Array.from({ length: n }, () => {
+    return Array.from({ length: n }, (_, k) => {
       const c = document.createElement("span");
       c.className = `chip ${color}`;
+      c.style.setProperty("--k", k);
       return c;
     });
   }
@@ -349,7 +469,7 @@
       const name = NAMES[mine[0]];
       if (r > 0) {
         out.textContent = `${name} · Win`; out.classList.add("w"); wrap.classList.add("win"); wins++;
-        wrap.querySelector(".hand-chips").replaceChildren(...chips(3, "chip-gold"));
+        wrap.querySelector(".hand-chips").replaceChildren(...chips(5, "chip-gold"));
       } else if (r < 0) {
         out.textContent = `${name} · Lose`; out.classList.add("l"); wrap.classList.add("lose"); losses++;
       } else {

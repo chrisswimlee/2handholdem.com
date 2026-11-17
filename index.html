@@ -105,14 +105,27 @@
         </div>
 
         <div class="hero-art">
-          <span class="chip chip-red hero-chip hc1" aria-hidden="true"></span>
-          <span class="chip chip-green hero-chip hc2" aria-hidden="true"></span>
-          <span class="chip chip-blue hero-chip hc3" aria-hidden="true"></span>
-          <img class="hero-logo" src="assets/img/logo-2hh.webp" alt="2 Hand Hold’em logo" width="500" height="433" fetchpriority="high" decoding="async" />
-          <button class="hero-deal" id="hero-deal" type="button" aria-label="Deal a new pair of hands">
-            <span class="pair pair-1"><span class="pair-cards"></span><span class="pair-label">Hand 1</span></span>
-            <span class="pair pair-2"><span class="pair-cards"></span><span class="pair-label">Hand 2</span></span>
-          </button>
+          <!-- 3D table: everything inside .table3d lies on (or stands on) one tilted plane -->
+          <div class="scene" id="hero-scene">
+            <div class="table3d">
+              <span class="table-shadow" aria-hidden="true"></span>
+              <span class="table-edge" aria-hidden="true"></span>
+              <span class="table-felt" aria-hidden="true"><i class="table-light"></i></span>
+              <span class="logo-shadow" aria-hidden="true"></span>
+              <span class="logo-glow" aria-hidden="true"></span>
+              <img class="hero-logo" src="assets/img/logo-2hh.webp" alt="2 Hand Hold’em logo" width="500" height="433" fetchpriority="high" decoding="async" />
+              <span class="stack st1" aria-hidden="true"><i class="chip chip-red"></i><i class="chip chip-red"></i><i class="chip chip-red"></i><i class="chip chip-red"></i><i class="chip chip-red"></i><i class="chip chip-red"></i></span>
+              <span class="stack st2" aria-hidden="true"><i class="chip chip-green"></i><i class="chip chip-green"></i><i class="chip chip-green"></i><i class="chip chip-green"></i></span>
+              <span class="stack st3" aria-hidden="true"><i class="chip chip-blue"></i><i class="chip chip-blue"></i><i class="chip chip-blue"></i></span>
+              <span class="stack st4" aria-hidden="true"><i class="chip chip-gold"></i><i class="chip chip-gold"></i><i class="chip chip-gold"></i><i class="chip chip-gold"></i><i class="chip chip-gold"></i></span>
+              <span class="deck" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+              <button class="hero-deal" id="hero-deal" type="button" aria-label="Deal a new pair of hands">
+                <span class="pair pair-1"><span class="pair-cards"></span><span class="pair-label">Hand 1</span></span>
+                <span class="pair pair-2"><span class="pair-cards"></span><span class="pair-label">Hand 2</span></span>
+              </button>
+            </div>
+          </div>
+          <p class="scene-hint" aria-hidden="true">Drag to spin · Tap the deck to deal · Flip a chip</p>
         </div>
       </div>
     </section>
@@ -234,30 +247,36 @@
         </header>
         <div class="tables-grid">
           <ul class="venues">
-            <li>
+            <li data-v="0">
               <a href="https://www.google.com/maps/search/?api=1&amp;query=The+Venetian+Las+Vegas" target="_blank" rel="noopener">
                 <span class="venue-city">Las Vegas, NV</span><strong>The Venetian Las Vegas</strong><span class="map">Directions ↗</span>
               </a>
             </li>
-            <li>
+            <li data-v="1">
               <a href="https://www.google.com/maps/search/?api=1&amp;query=The+Commerce+Casino+%26+Hotel" target="_blank" rel="noopener">
                 <span class="venue-city">Commerce, CA</span><strong>The Commerce Casino &amp; Hotel</strong><span class="map">Directions ↗</span>
               </a>
             </li>
-            <li>
+            <li data-v="2">
               <a href="https://www.google.com/maps/search/?api=1&amp;query=The+Office+Card+House+San+Antonio" target="_blank" rel="noopener">
                 <span class="venue-city">San Antonio, TX</span><strong>The Office Card House</strong><span class="map">Directions ↗</span>
               </a>
             </li>
-            <li>
+            <li data-v="3">
               <a href="https://www.google.com/maps/search/?api=1&amp;query=Silver+Dollar+Casino+SeaTac" target="_blank" rel="noopener">
                 <span class="venue-city">SeaTac, WA</span><strong>Silver Dollar Casino SeaTac</strong><span class="map">Directions ↗</span>
               </a>
             </li>
           </ul>
           <div class="venue-map">
-            <button class="map-facade" id="map-load" type="button" data-src="https://www.google.com/maps/d/embed?mid=1jkuOr8dbWp_1eP_5JAC2VYsHcoKf-Uc&amp;ehbc=2E312F">
-              <span class="map-pins" aria-hidden="true"><i style="--x:22%;--y:36%"></i><i style="--x:14%;--y:48%"></i><i style="--x:52%;--y:58%"></i><i style="--x:16%;--y:12%"></i></span>
+            <button class="map-facade" id="map-load" type="button" aria-label="Map of the four casinos dealing 2 Hand Hold’em: SeaTac, Las Vegas, Commerce and San Antonio. Show the interactive Google map." data-src="https://www.google.com/maps/d/embed?mid=1jkuOr8dbWp_1eP_5JAC2VYsHcoKf-Uc&amp;ehbc=2E312F">
+              <svg class="us-map" viewBox="0 0 480 308" aria-hidden="true" focusable="false">
+                <path class="us-land" d="M37.6 16.2 L48.2 21.7 L52.7 14 L66.5 17.8 L80.4 21.4 L94.4 24.7 L108.4 27.7 L122.5 30.3 L136.7 32.7 L150.9 34.8 L165.1 36.6 L179.4 38.2 L193.7 39.4 L208 40.3 L222.3 40.9 L236.7 41.2 L251 41.2 L251 37.1 L253.5 38 L255.1 44.4 L264.6 45.3 L274.3 49.3 L283.1 48.9 L292.8 50.5 L274.2 65.1 L283.9 64.6 L290.7 63.7 L305 55.5 L301.8 61.8 L309.6 64.9 L327.4 60.9 L332.2 63.1 L335.9 68.1 L330.8 70.4 L320.8 70.4 L313.5 73.9 L309.5 80.8 L307 87.1 L314 78.8 L311.1 89.5 L309.2 104 L312.7 116.4 L315.4 118.9 L321.3 112.8 L321.2 96.3 L322.3 84 L324.8 78.2 L330.5 71 L341.8 77.8 L343.7 85.9 L340 94.1 L347.1 88.2 L352.2 99.1 L348.2 107.4 L345.9 114.4 L352.6 115.7 L360.6 114.5 L372.3 105.4 L380.3 95.6 L378.5 92.1 L389.6 89.4 L397.7 85.5 L398.5 77.5 L403.8 69.1 L408 66.4 L420 63.6 L432 60.5 L434.1 56.6 L437.8 49.9 L436.8 43.4 L438.1 39.6 L441.6 30.1 L448.4 29.3 L452.9 31.3 L457.2 45.4 L461.7 49.7 L466 53 L458.7 61 L453 66.6 L445.8 72.7 L444 81.2 L443.3 87.7 L447.5 91.1 L451.9 88.7 L453.5 92.8 L448.3 95.4 L442.7 98.1 L431.4 103.2 L439.9 103.4 L425.3 112.7 L424.8 114.5 L425.7 121.6 L421.1 131.7 L414.9 126.9 L420.1 134.8 L420.9 142.5 L417.1 153 L408.2 131.7 L414 155.3 L418.3 158.9 L424.9 172.8 L416.6 180.7 L406.6 192.3 L396.8 201.4 L391.3 207.4 L382.7 217.1 L381.8 235.1 L392.7 255.5 L400.9 271.8 L401.8 283.2 L400.3 289.4 L393.5 291.1 L385 282 L373.1 265 L370.7 251.1 L361 243 L355.2 242.6 L346.2 247.5 L334.1 241.1 L320.2 244.1 L309.8 243.8 L309.8 257.5 L297.4 258.3 L284.8 254.6 L265.7 253 L256.3 257.6 L241 267.5 L233.2 276.1 L233.4 294 L214.2 288.7 L210.7 276.6 L201.6 263.2 L193.6 251.3 L184.2 250.7 L176.9 258.6 L164.1 250.7 L161.4 239.5 L147.8 225.4 L132.2 223.2 L131.6 228.1 L105.2 224.3 L89.2 215.1 L73.5 205.5 L53 200.8 L52.3 195.4 L44.5 185.1 L44.3 181.9 L37.9 177.8 L28.3 173 L28.8 165.2 L22.4 146.8 L20.9 133.2 L17.5 129.4 L14.6 117 L14 100.2 L19.8 89.7 L20.6 84.2 L20.6 74.6 L30.1 57.3 L35.7 40.1 L37 33.1 L36 21.4Z"/>
+                <g class="pin" data-v="0" transform="translate(78.2 165.8)"><circle class="pin-ring" r="9"/><circle class="pin-dot" r="4.5"/><text x="12" y="-4" text-anchor="start">Las Vegas</text></g>
+                <g class="pin" data-v="1" transform="translate(47.3 182.9)"><circle class="pin-ring" r="9"/><circle class="pin-dot" r="4.5"/><text x="12" y="14" text-anchor="start">Commerce</text></g>
+                <g class="pin" data-v="2" transform="translate(221.0 256.0)"><circle class="pin-ring" r="9"/><circle class="pin-dot" r="4.5"/><text x="13" y="-8" text-anchor="start">San Antonio</text></g>
+                <g class="pin" data-v="3" transform="translate(51.6 31.3)"><circle class="pin-ring" r="9"/><circle class="pin-dot" r="4.5"/><text x="13" y="5" text-anchor="start">SeaTac</text></g>
+              </svg>
               <span class="map-cta"><b>Show the interactive map</b><small>Loads Google Maps</small></span>
             </button>
             <a class="text-link" href="https://www.google.com/maps/d/viewer?mid=1jkuOr8dbWp_1eP_5JAC2VYsHcoKf-Uc" target="_blank" rel="noopener">Open the full map ↗</a>
